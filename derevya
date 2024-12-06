@@ -1,0 +1,124 @@
+#Узел дерева содержит ключ и ссылки на левого и правого потомков
+class Node:
+    def __init__(self, key):
+        self.key = key
+        self.left = None
+        self.right = None
+#Класс реализует основные операции: вставку, поиск, удаление и обход дерева.
+class BinarySearchTree:
+    def __init__(self):
+        self.root = None
+
+    def insert(self, key):
+        if self.root is None:
+            self.root = Node(key)
+        else:
+            self._insert_recursive(self.root, key)
+
+    def _insert_recursive(self, node, key):
+        if key < node.key:
+            if node.left is None:
+                node.left = Node(key)
+            else:
+                self._insert_recursive(node.left, key)
+        elif key > node.key:
+            if node.right is None:
+                node.right = Node(key)
+            else:
+                self._insert_recursive(node.right, key)
+
+    def search(self, key):
+        return self._search_recursive(self.root, key)
+
+    def _search_recursive(self, node, key):
+        if node is None or node.key == key:
+            return node
+        if key < node.key:
+            return self._search_recursive(node.left, key)
+        else:
+            return self._search_recursive(node.right, key)
+
+    def delete(self, key):
+        self.root = self._delete_recursive(self.root, key)
+
+    def _delete_recursive(self, node, key):
+        if node is None:
+            return node
+        if key < node.key:
+            node.left = self._delete_recursive(node.left, key)
+        elif key > node.key:
+            node.right = self._delete_recursive(node.right, key)
+        else:
+            # Узел найден
+            if node.left is None:
+                return node.right
+            elif node.right is None:
+                return node.left
+            min_larger_node = self._find_min(node.right)
+            node.key = min_larger_node.key
+            node.right = self._delete_recursive(node.right, min_larger_node.key)
+        return node
+
+    def _find_min(self, node):
+        while node.left is not None:
+            node = node.left
+        return node
+
+    def inorder(self, node):
+        if node:
+            self.inorder(node.left)
+            print(node.key, end=" ")
+            self.inorder(node.right)
+#Создание дерева и выполнение операций
+tree = BinarySearchTree()
+tree.insert(50)
+tree.insert(30)
+tree.insert(70)
+tree.insert(20)
+tree.insert(40)
+tree.insert(60)
+tree.insert(80)
+
+print("Inorder traversal:")
+tree.inorder(tree.root)
+
+print("\nSearch for 40:")
+found_node = tree.search(40)
+if found_node:
+    print(f"Node with key {found_node.key} found!")
+else:
+    print("Node not found.")
+
+print("\nDelete 30 and perform inorder traversal:")
+tree.delete(30)
+tree.inorder(tree.root)
+#Используем модуль unittest для проверки корректности реализации.
+import unittest
+
+class TestBinarySearchTree(unittest.TestCase):
+    def setUp(self):
+        self.tree = BinarySearchTree()
+        self.tree.insert(50)
+        self.tree.insert(30)
+        self.tree.insert(70)
+        self.tree.insert(20)
+        self.tree.insert(40)
+        self.tree.insert(60)
+        self.tree.insert(80)
+
+    def test_search(self):
+        self.assertIsNotNone(self.tree.search(50))
+        self.assertIsNone(self.tree.search(100))
+
+    def test_insert(self):
+        self.tree.insert(90)
+        self.assertIsNotNone(self.tree.search(90))
+
+    def test_delete(self):
+        self.tree.delete(20)
+        self.assertIsNone(self.tree.search(20))
+        self.tree.delete(30)
+        self.assertIsNone(self.tree.search(30))
+
+if __name__ == "__main__":
+    unittest.main()

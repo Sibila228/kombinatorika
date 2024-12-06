@@ -1,0 +1,85 @@
+#Реализация алгоритма Гэйла-Шепли
+def stable_marriage(men_preferences, women_preferences):
+    # Инициализация
+    free_men = list(men_preferences.keys())  # Все мужчины свободны
+    proposals = {man: [] for man in men_preferences}  # Учет предложений
+    engaged = {}  # Текущие пары
+
+    while free_men:
+        man = free_men.pop(0)  # Берем первого свободного мужчину
+        for woman in men_preferences[man]:
+            if woman not in proposals[man]:  # Проверяем, делал ли он предложение
+                proposals[man].append(woman)
+                if woman not in engaged:  # Если женщина свободна, формируем пару
+                    engaged[woman] = man
+                    break
+                else:  # Если женщина занята, проверяем, кого она предпочитает
+                    current_partner = engaged[woman]
+                    if women_preferences[woman].index(man) < women_preferences[woman].index(current_partner):
+                        engaged[woman] = man
+                        free_men.append(current_partner)  # Отвергнутый становится свободным
+                        break
+    return engaged
+#Тестирование алгоритма
+def test_stable_marriage():
+    men = {
+        'A': ['X', 'Y', 'Z'],
+        'B': ['Y', 'X', 'Z'],
+        'C': ['X', 'Y', 'Z']
+    }
+    women = {
+        'X': ['A', 'B', 'C'],
+        'Y': ['B', 'A', 'C'],
+        'Z': ['A', 'C', 'B']
+    }
+    expected_result = {'X': 'A', 'Y': 'B', 'Z': 'C'}
+    result = stable_marriage(men, women)
+    assert result == expected_result, f"Test failed: {result}"
+
+test_stable_marriage()
+
+# Измерение производительности
+import time
+
+def performance_test(n):
+    men = {f'M{i}': [f'W{j}' for j in range(n)] for i in range(n)}
+    women = {f'W{i}': [f'M{j}' for j in range(n)] for i in range(n)}
+    start_time = time.time()
+    stable_marriage(men, women)
+    elapsed_time = time.time() - start_time
+    print(f"Time for {n} participants: {elapsed_time:.4f} seconds")
+
+performance_test(100)  # Проверка на 100 участников
+performance_test(500)  # Проверка на 500 участников
+
+#Генерация случайных данных для тестов
+import random
+
+def generate_random_preferences(n):
+    men = {f'M{i}': random.sample([f'W{j}' for j in range(n)], n) for i in range(n)}
+    women = {f'W{i}': random.sample([f'M{j}' for j in range(n)], n) for i in range(n)}
+    return men, women
+
+men_preferences, women_preferences = generate_random_preferences(10)
+print("Men's preferences:", men_preferences)
+print("Women's preferences:", women_preferences)
+result = stable_marriage(men_preferences, women_preferences)
+print("Stable pairs:", result)
+
+#Визуализация результата
+import matplotlib.pyplot as plt
+import networkx as nx
+
+def visualize_matching(matching):
+    G = nx.Graph()
+    for woman, man in matching.items():
+        G.add_edge(man, woman)
+    
+    pos = nx.spring_layout(G)
+    nx.draw(G, pos, with_labels=True, node_color="skyblue", edge_color="gray", node_size=2000, font_size=15)
+    plt.title("Stable Matching")
+    plt.show()
+
+men_preferences, women_preferences = generate_random_preferences(5)
+result = stable_marriage(men_preferences, women_preferences)
+visualize_matching(result)
